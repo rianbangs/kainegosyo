@@ -2,6 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import Ordering from './components/Ordering';
 
+//to download the node modules, run npm install in the terminal
+
 export default function App() {
   return (
     <View style={styles.container}>
