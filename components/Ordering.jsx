@@ -10,8 +10,10 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Ordering() {
+  const navigation = useNavigation();
   const [order, setOrder] = useState([
     { id: '1', name: 'Grilled Salmon', price: 51.8, quantity: 2 },
     { id: '2', name: 'Caesar Salad', price: 12.5, quantity: 1 },
@@ -101,6 +103,15 @@ export default function Ordering() {
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handlePlaceOrder = () => {
+    navigation.navigate('Cashiering', {
+      order,
+      orderNumber: '1234',
+      tableNumber: '5',
+      time: '2:45 PM',
+    });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -156,7 +167,7 @@ export default function Ordering() {
         <TouchableOpacity style={styles.clearButton} onPress={() => setOrder([])}>
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.payButton}>
+        <TouchableOpacity style={styles.payButton} onPress={handlePlaceOrder}>
           <Text style={styles.buttonText}>Place Order</Text>
         </TouchableOpacity>
       </View>
