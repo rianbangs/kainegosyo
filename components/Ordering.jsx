@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -25,6 +26,16 @@ export default function Ordering() {
     { id: '5', name: 'Fish & Chips', price: 19.9, image: require('../assets/favicon.png') },
     { id: '6', name: 'Margherita Pizza', price: 15.9, image: require('../assets/favicon.png') },
   ]);
+
+  const [categories] = useState([
+    { id: 'all', name: 'All', icon: 'grid', color: 'blue' },
+    { id: 'main-course', name: 'Main Course', icon: 'fast-food', color: 'gray' },
+    { id: 'appetizers', name: 'Appetizers', icon: 'pizza', color: 'gray' },
+    { id: 'beverages', name: 'Beverages', icon: 'wine', color: 'gray' },
+    { id: 'street-food', name: 'Street Food', icon: 'wine', color: 'gray' },
+  ]);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const updateQuantity = (id, type) => {
     setOrder((prevOrder) =>
@@ -86,6 +97,10 @@ export default function Ordering() {
     </View>
   );
 
+  const filteredMenuItems = menuItems.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -107,11 +122,31 @@ export default function Ordering() {
      <View>
         <Text style={styles.subtotal}>Total Items: {order.length}</Text>
         <Text style={styles.subtotal}>Subtotal: ${getTotalPrice()}</Text>
+     </View>   
+        
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+          {categories.map((category) => (
+            <TouchableOpacity key={category.id} style={styles.categoryButton}>
+              <Ionicons name={category.icon} size={20} color={category.color} />
+              <Text style={styles.categoryText}>{category.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>       
+      <View style={styles.menuHeaderContainer}>  
         <Text style={styles.categoryHeader}>Menu</Text>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="gray" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
      </View>     
         
      <FlatList contentContainerStyle={styles.scrollViewContent}
-          data={menuItems}
+          data={filteredMenuItems}
           keyExtractor={(item) => item.id}
           numColumns={2}
           renderItem={renderMenuItem}
@@ -122,7 +157,7 @@ export default function Ordering() {
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.payButton}>
-          <Text style={styles.buttonText}>Pay Now</Text>
+          <Text style={styles.buttonText}>Place Order</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -159,7 +194,25 @@ scrollViewContentOrder:{
     width: '100%',
     height: '100%'
 },
-
+categoryScroll: {
+    marginTop: 10,
+    marginBottom: 10,
+    paddingLeft: 10,
+    height: 100,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  categoryText: {
+    marginLeft: 5,
+    fontSize: 16,
+    color: 'gray',
+  },
   header: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
   subHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
   subText: { color: 'gray', marginBottom: 15 },
@@ -168,6 +221,9 @@ scrollViewContentOrder:{
   itemName: { flex: 1, fontSize: 16 },
   price: { fontWeight: 'bold' },
   categoryHeader: { marginLeft:10 ,fontSize: 20, fontWeight: 'bold', marginTop: 20 },
+  menuHeaderContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 10, marginTop: 20 },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
+  searchInput: { marginLeft: 5, fontSize: 16, color: 'gray', width: 150 },
   menuItem: { flex: 1, alignItems: 'center', margin: 10, width: '45%' },
   image: { width: '100%', height: 100, borderRadius: 10 },
   menuText: { fontSize: 16, marginTop: 5 },
