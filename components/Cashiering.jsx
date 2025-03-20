@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,22 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Cashiering({ route }) {
-  const { order, orderNumber, tableNumber, time } = route.params;
+  const { order: initialOrder, orderNumber, tableNumber, time } = route.params;
+  const [order, setOrder] = useState(initialOrder);
+
+  const updateQuantity = (id, type) => {
+    setOrder((prevOrder) =>
+      prevOrder.map((item) =>
+        item.id === id
+          ? { ...item, quantity: type === 'increase' ? item.quantity + 1 : Math.max(1, item.quantity - 1) }
+          : item
+      )
+    );
+  };
+
+  const removeItem = (id) => {
+    setOrder((prevOrder) => prevOrder.filter((item) => item.id !== id));
+  };
 
   const getTotalPrice = () => {
     return order.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
@@ -28,17 +43,17 @@ export default function Cashiering({ route }) {
       <Text style={styles.itemName}>{item.name}</Text>
       <Text style={styles.price}>${item.price.toFixed(2)}</Text>
       <View style={styles.quantityContainer}>
-        <TouchableOpacity>
+        {/* <TouchableOpacity onPress={() => updateQuantity(item.id, 'decrease')}>
           <Ionicons name="remove-circle-outline" size={24} color="black" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text style={styles.quantity}>{item.quantity}</Text>
-        <TouchableOpacity>
+        {/* <TouchableOpacity onPress={() => updateQuantity(item.id, 'increase')}>
           <Ionicons name="add-circle-outline" size={24} color="black" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
-      <TouchableOpacity>
+      {/* <TouchableOpacity onPress={() => removeItem(item.id)}>
         <Ionicons name="trash-outline" size={24} color="red" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 
@@ -58,9 +73,10 @@ export default function Cashiering({ route }) {
       />
 
       <View style={styles.summaryContainer}>
-        <Text style={styles.summaryText}>Subtotal: ${getTotalPrice()}</Text>
+        {/* <Text style={styles.summaryText}>Subtotal: ${getTotalPrice()}</Text>
         <Text style={styles.summaryText}>Tax (8%): ${getTax()}</Text>
-        <Text style={styles.totalText}>Total: ${getTotalWithTax()}</Text>
+        <Text style={styles.totalText}>Total: ${getTotalWithTax()}</Text> */}
+        <Text style={styles.totalText}>Total: ${getTotalPrice()}</Text>
       </View>
 
       <TouchableOpacity style={styles.completePaymentButton}>
@@ -121,7 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   summaryContainer: {
-    marginBottom: 20,
+    marginBottom: 60,
   },
   summaryText: {
     fontSize: 16,

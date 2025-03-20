@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
+  Modal,
+  Button,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -38,6 +40,12 @@ export default function Ordering() {
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    setModalVisible(true);
+  }, []);
 
   const updateQuantity = (id, type) => {
     setOrder((prevOrder) =>
@@ -104,6 +112,7 @@ export default function Ordering() {
   );
 
   const handlePlaceOrder = () => {
+    // setModalVisible(true);
     navigation.navigate('Cashiering', {
       order,
       orderNumber: '1234',
@@ -112,12 +121,17 @@ export default function Ordering() {
     });
   };
 
+  const handleConfirmOrder = () => {
+    setModalVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.header}>Order Picking</Text>
         <Text style={styles.subHeader}>Order #1234</Text>
         <Text style={styles.subText}>2:45 PM Table #15</Text>
+        {customerName ? <Text style={styles.customerNameText}>Customer: {customerName}</Text> : null}
       </View>
        
         {order.length > 0 ? (
@@ -155,7 +169,7 @@ export default function Ordering() {
           />
         </View>
      </View>     
-        
+
      <FlatList contentContainerStyle={styles.scrollViewContent}
           data={filteredMenuItems}
           keyExtractor={(item) => item.id}
@@ -168,9 +182,31 @@ export default function Ordering() {
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.payButton} onPress={handlePlaceOrder}>
-          <Text style={styles.buttonText}>Place Order</Text>
+          <Text style={styles.buttonText}>Proceed Order</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Enter Customer Name</Text>
+            <TextInput
+              style={styles.customerNameInput}
+              placeholder="Customer Name"
+              value={customerName}
+              onChangeText={setCustomerName}
+            />
+            <Button title="Confirm" onPress={handleConfirmOrder} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -199,11 +235,12 @@ const styles = StyleSheet.create({
 },
 scrollViewContentOrder:{
     marginTop:60, // Add margin to avoid content being hidden behind the header
+     
     paddingTop: 60, // Add padding to avoid content being hidden behind the header
-    padding: 10,
-    paddingBottom: 80, // Add padding to avoid content being hidden behind the buttons
+    padding: 10,     
     width: '100%',
-    height: '100%'
+    height: 600
+
 },
 categoryScroll: {
     marginTop: 10,
@@ -227,6 +264,7 @@ categoryScroll: {
   header: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
   subHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
   subText: { color: 'gray', marginBottom: 15 },
+  customerNameText: { fontSize: 16, color: 'gray', marginBottom: 15 },
   orderItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, width: '100%' },
   quantity: { marginHorizontal: 10, fontSize: 16 },
   itemName: { flex: 1, fontSize: 16 },
@@ -235,6 +273,17 @@ categoryScroll: {
   menuHeaderContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 10, marginTop: 20 },
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
   searchInput: { marginLeft: 5, fontSize: 16, color: 'gray', width: 150 },
+  customerNameContainer: {
+    marginHorizontal: 10,
+    marginTop: 20,
+  },
+  customerNameInput: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+  },
   menuItem: { flex: 1, alignItems: 'center', margin: 10, width: '45%' },
   image: { width: '100%', height: 100, borderRadius: 10 },
   menuText: { fontSize: 16, marginTop: 5 },
@@ -255,4 +304,30 @@ categoryScroll: {
   buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
   subtotal: { marginLeft:10 ,fontSize: 18, fontWeight: 'bold', marginTop: 10 },
   emptyMessage: { marginTop:340,width: 400,flexDirection: 'row',textAlign: 'center', fontSize: 16, color: 'gray', marginVertical: 20 },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalView: {
+    width: 300,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 18,
+  },
 });
