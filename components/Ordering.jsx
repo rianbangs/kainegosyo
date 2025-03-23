@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function Ordering() {
   const navigation = useNavigation();
-  const [order, setOrder] = useState([
-    { id: '1', name: 'Grilled Salmon', price: 51.8, quantity: 2 },
-    { id: '2', name: 'Caesar Salad', price: 12.5, quantity: 1 },
-    { id: '3', name: 'Iced Tea', price: 3.5, quantity: 1 },
-  ]);
+  const [order, setOrder] = useState([]);
+  const [focusedItemId, setFocusedItemId] = useState(null);
 
   const [menuItems] = useState([
     { id: '1', name: 'Grilled Salmon', price: 25.9, image: require('../assets/favicon.png') },
@@ -42,19 +39,27 @@ export default function Ordering() {
   const [searchQuery, setSearchQuery] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const flatListRef = useRef(null);
 
   useEffect(() => {
     setModalVisible(true);
   }, []);
 
   const updateQuantity = (id, type) => {
-    setOrder((prevOrder) =>
-      prevOrder.map((item) =>
+    setOrder((prevOrder) => {
+      const newOrder = prevOrder.map((item) =>
         item.id === id
           ? { ...item, quantity: type === 'increase' ? item.quantity + 1 : Math.max(1, item.quantity - 1) }
           : item
-      )
-    );
+      );
+      const index = newOrder.findIndex((item) => item.id === id);
+      setFocusedItemId(id);
+      setTimeout(() => {
+        flatListRef.current.scrollToIndex({ index, animated: true });
+        setTimeout(() => setFocusedItemId(null), 2000);
+      }, 100);
+      return newOrder;
+    });
   };
 
   const removeItem = (id) => {
@@ -65,13 +70,26 @@ export default function Ordering() {
     setOrder((prevOrder) => {
       const existingItem = prevOrder.find((orderItem) => orderItem.id === item.id);
       if (existingItem) {
-        return prevOrder.map((orderItem) =>
+        const newOrder = prevOrder.map((orderItem) =>
           orderItem.id === item.id
             ? { ...orderItem, quantity: orderItem.quantity + 1 }
             : orderItem
         );
+        const index = newOrder.findIndex((orderItem) => orderItem.id === item.id);
+        setFocusedItemId(item.id);
+        setTimeout(() => {
+          flatListRef.current.scrollToIndex({ index, animated: true });
+          setTimeout(() => setFocusedItemId(null), 2000);
+        }, 100);
+        return newOrder;
       }
-      return [...prevOrder, { ...item, quantity: 1 }];
+      const newOrder = [...prevOrder, { ...item, quantity: 1 }];
+      setFocusedItemId(item.id);
+      setTimeout(() => {
+        flatListRef.current.scrollToIndex({ index: newOrder.length - 1, animated: true });
+        setTimeout(() => setFocusedItemId(null), 2000);
+      }, 100);
+      return newOrder;
     });
   };
 
@@ -80,16 +98,16 @@ export default function Ordering() {
   };
 
   const renderOrderItem = ({ item }) => (
-    <View style={styles.orderItem}>
+    <View style={[styles.orderItem, item.id === focusedItemId && styles.focusedOrderItem]}>
       <TouchableOpacity onPress={() => updateQuantity(item.id, 'decrease')}>
-        <Ionicons name="remove" size={20} color="black" />
+        <Ionicons name="remove" size={20} color={item.id === focusedItemId ? 'white' : 'black'} />
       </TouchableOpacity>
-      <Text style={styles.quantity}>{item.quantity}</Text>
+      <Text style={[styles.quantity, item.id === focusedItemId && styles.focusedText]}>{item.quantity}</Text>
       <TouchableOpacity onPress={() => updateQuantity(item.id, 'increase')}>
-        <Ionicons name="add" size={20} color="black" />
+        <Ionicons name="add" size={20} color={item.id === focusedItemId ? 'white' : 'black'} />
       </TouchableOpacity>
-      <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.price}>${item.price.toFixed(2)}</Text>
+      <Text style={[styles.itemName, item.id === focusedItemId && styles.focusedText]}>{item.name}</Text>
+      <Text style={[styles.price, item.id === focusedItemId && styles.focusedText]}>${item.price.toFixed(2)}</Text>
       <TouchableOpacity onPress={() => removeItem(item.id)}>
         <Ionicons name="trash" size={20} color="red" />
       </TouchableOpacity>
@@ -112,12 +130,12 @@ export default function Ordering() {
   );
 
   const handlePlaceOrder = () => {
-    // setModalVisible(true);
     navigation.navigate('Cashiering', {
       order,
       orderNumber: '1234',
       tableNumber: '5',
       time: '2:45 PM',
+      customerName,
     });
   };
 
@@ -135,10 +153,21 @@ export default function Ordering() {
       </View>
        
         {order.length > 0 ? (
-          <FlatList contentContainerStyle={styles.scrollViewContentOrder}
+          <FlatList
+            ref={flatListRef}
+            contentContainerStyle={styles.scrollViewContentOrder}
             data={order}
             keyExtractor={(item) => item.id}
             renderItem={renderOrderItem}
+            getItemLayout={(data, index) => (
+              { length: 50, offset: 50 * index, index }
+            )}
+            onScrollToIndexFailed={(info) => {
+              const wait = new Promise(resolve => setTimeout(resolve, 500));
+              wait.then(() => {
+                flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+              });
+            }}
           />
         ) : (
           <Text style={styles.emptyMessage}>No items in the order.</Text>
@@ -234,7 +263,7 @@ const styles = StyleSheet.create({
    
 },
 scrollViewContentOrder:{
-    marginTop:60, // Add margin to avoid content being hidden behind the header
+    marginTop:200, // Add margin to avoid content being hidden behind the header
      
     paddingTop: 60, // Add padding to avoid content being hidden behind the header
     padding: 10,     
@@ -266,9 +295,11 @@ categoryScroll: {
   subText: { color: 'gray', marginBottom: 15 },
   customerNameText: { fontSize: 16, color: 'gray', marginBottom: 15 },
   orderItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, width: '100%' },
+  focusedOrderItem: { backgroundColor: 'green' },
   quantity: { marginHorizontal: 10, fontSize: 16 },
   itemName: { flex: 1, fontSize: 16 },
   price: { fontWeight: 'bold' },
+  focusedText: { color: 'white' },
   categoryHeader: { marginLeft:10 ,fontSize: 20, fontWeight: 'bold', marginTop: 20 },
   menuHeaderContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 10, marginTop: 20 },
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
