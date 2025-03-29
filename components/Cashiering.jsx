@@ -7,10 +7,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Cashiering({ route }) {
-  const { order: initialOrder, orderNumber, tableNumber, time } = route.params;
+  const { order: initialOrder, orderNumber, tableNumber, time,customerName } = route.params;
   const [order, setOrder] = useState(initialOrder);
+  const navigation = useNavigation();
 
   const updateQuantity = (id, type) => {
     setOrder((prevOrder) =>
@@ -38,6 +40,16 @@ export default function Cashiering({ route }) {
     return (parseFloat(getTotalPrice()) + parseFloat(getTax())).toFixed(2);
   };
 
+  const handlePayment = () => {
+    navigation.navigate('QueueList', {
+      order,
+      orderNumber: '1234',
+      tableNumber: '5',
+      time: '2:45 PM',
+      customerName,
+    });
+  };
+
   const renderOrderItem = ({ item }) => (
     <View style={styles.orderItem}>
       <Text style={styles.itemName}>{item.name}</Text>
@@ -63,6 +75,7 @@ export default function Cashiering({ route }) {
         <Text style={styles.header}>Cashier</Text>
         <Text style={styles.subHeader}>Order #{orderNumber}</Text>
         <Text style={styles.subText}>{time} Table #{tableNumber}</Text>
+        <Text style={styles.subHeader}>Customer: {customerName}</Text>
       </View>
 
       <FlatList
@@ -79,7 +92,7 @@ export default function Cashiering({ route }) {
         <Text style={styles.totalText}>Total: ${getTotalPrice()}</Text>
       </View>
 
-      <TouchableOpacity style={styles.completePaymentButton}>
+      <TouchableOpacity style={styles.completePaymentButton} onPress={handlePayment}>
         <Text style={styles.completePaymentButtonText}>Complete Payment</Text>
       </TouchableOpacity>
     </View>
