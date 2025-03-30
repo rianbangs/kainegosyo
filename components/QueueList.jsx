@@ -7,18 +7,28 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 export default function QueueList() {
   const [selectedTab, setSelectedTab] = useState('All Orders');
-    
+
   const orders = [
-    { id: 'A105', name: 'John Smith', time: '10:30 AM', wait: '12 min', items: 2, status: 'Waiting' },
-    { id: 'A106', name: 'Sarah Wilson', time: '10:35 AM', wait: '8 min', items: 1, status: 'In Progress' },
-    { id: 'A107', name: 'Michael Brown', time: '10:40 AM', wait: '5 min', items: 3, status: 'Ready' },
-    { id: 'A108', name: 'Emma Davis', time: '10:45 AM', wait: '3 min', items: 2, status: 'Waiting' },
-    { id: 'A109', name: 'James Wilson', time: '10:50 AM', wait: '1 min', items: 4, status: 'In Progress' },
-  ];
+    { id: 'A105', name: 'John Smith', time: '10:30 AM', wait: 12, items: 2, status: 'Waiting' },
+    { id: 'A106', name: 'Sarah Wilson', time: '10:35 AM', wait: 8, items: 1, status: 'In Progress' },
+    { id: 'A107', name: 'Michael Brown', time: '10:40 AM', wait: 5, items: 3, status: 'Ready' },
+    { id: 'A108', name: 'Emma Davis', time: '10:45 AM', wait: 3, items: 2, status: 'Waiting' },
+    { id: 'A109', name: 'James Wilson', time: '10:50 AM', wait: 1, items: 4, status: 'In Progress' },
+    { id: 'A110', name: 'John Smith', time: '10:30 AM', wait: 12, items: 2, status: 'Waiting' },
+    { id: 'A111', name: 'Sarah Wilson', time: '10:35 AM', wait: 8, items: 1, status: 'In Progress' },
+    { id: 'A112', name: 'Michael Brown', time: '10:40 AM', wait: 5, items: 3, status: 'Ready' },
+    { id: 'A113', name: 'Emma Davis', time: '10:45 AM', wait: 3, items: 2, status: 'Waiting' },
+    { id: 'A114', name: 'James Wilson', time: '10:50 AM', wait: 1, items: 4, status: 'In Progress' },  
+];
+
+  // Calculate dynamic summary data
+  const totalWaiting = orders.filter((order) => order.status === 'Waiting').length;
+  const averageWait =
+    orders.reduce((total, order) => total + order.wait, 0) / orders.length || 0;
+  const nextCall = orders.find((order) => order.status === 'Waiting')?.id || 'N/A';
 
   const tabs = ['All Orders', 'Waiting', 'In Progress', 'Ready'];
 
@@ -31,7 +41,7 @@ export default function QueueList() {
       <Text style={styles.orderName}>{item.name}</Text>
       <View style={styles.orderDetails}>
         <Text style={styles.orderTime}>{item.time}</Text>
-        <Text style={styles.orderWait}>Wait: {item.wait}</Text>
+        <Text style={styles.orderWait}>Wait: {item.wait} min</Text>
         <Text style={styles.orderItems}>{item.items} items</Text>
       </View>
     </View>
@@ -45,9 +55,9 @@ export default function QueueList() {
       </View>
 
       <View style={styles.summary}>
-        <Text style={styles.summaryText}>Total Waiting: 12</Text>
-        <Text style={styles.summaryText}>Average Wait: 15 min</Text>
-        <Text style={styles.summaryText}>Next Call: #A105</Text>
+        <Text style={styles.summaryText}>Total Waiting: {totalWaiting}</Text>
+        <Text style={styles.summaryText}>Average Wait: {averageWait.toFixed(1)} min</Text>
+        <Text style={styles.summaryText}>Next Call: #{nextCall}</Text>
       </View>
 
       <View style={styles.tabs}>
